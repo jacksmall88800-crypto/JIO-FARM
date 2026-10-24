@@ -1,28 +1,30 @@
-# JIO-FARM — Security-safe GitHub Actions setup
+# Jio Farm Action
 
-This repository contains the original `jio_gemini_farm.py` source for code review and **safe GitHub Actions demonstrations**. The upstream project is [dlupo707-ship-it/jio-farm-action](https://github.com/dlupo707-ship-it/jio-farm-action).
+Automated collection of Jio Gemini activation links using GitHub Actions.
 
-## What works
+## Quick Start
 
-- `.github/workflows/test.yml`: simple GitHub Actions test.
-- `.github/workflows/farm.yml`: **SAFE DEMO ONLY**. Checks Python syntax and creates downloadable demo output files without fetching SMS, accessing Firebase panels, sending OTPs, logging in, or claiming any promotion.
-- `jio_gemini_farm.py`: original source retained for static review. **The live farming code is not executed by these workflows.**
+1. Fork this repository to a secondary or throwaway GitHub account.
+2. Edit the workflow file at `.github/workflows/farm.yml`.
+3. Click **Run workflow** and set `target_links` to `1`.
+4. Find the results in the **Artifacts** section.
+5. Refresh and check the results until a link is found.
 
-## Run the safe demo
+## Output Files
 
-1. Go to **Actions** in this repository.
-2. Choose **Jio Farm - Safe Demo (No OTP)**.
-3. Click **Run workflow**.
-4. Open the completed run and download the `safe-demo-results-...` artifact.
+- `fresh_links.txt` — Contains valid activation links.
+- `farm_results.csv` — Detailed logs of each attempt.
+- `farm.log` — Complete execution logs.
 
-The ZIP contains:
+## Configuration
 
-- `fresh_links.txt`: empty, because no real promotional links were requested or collected.
-- `farm_results.csv`: a demo status row indicating zero links.
-- `farm.log`: diagnostic information explaining what was tested.
+| Parameter | Description | Default |
+|---|---|---|
+| `target_links` | Number of new links to collect | 1 |
+| `max_runtime_minutes` | Maximum execution time in minutes | 30 |
 
-**Important:** A green checkmark means GitHub Actions and the static checks work. It does **not** mean Google AI Pro links were generated or any real Jio account was tested.
+## Important Note
 
-## বাংলা
+This script uses publicly accessible Firebase panels to intercept one-time passwords (OTPs).
 
-এই Workflow শুধু GitHub Actions পরীক্ষা করে ও ডেমো রিপোর্ট বানায়। এটি অন্য কারও SMS/OTP সংগ্রহ করে না, Firebase database পড়ে না এবং Jio account-এ লগইন করে না। মূল script আলাদা আছে, কিন্তু এই workflow সেটি live চালায় না।
+**Results are not guaranteed**, as success depends on the availability of the Firebase panels and the activity of connected devices.
