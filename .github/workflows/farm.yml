@@ -1,0 +1,58 @@
+name: Jio Farm - Safe Demo (No OTP)
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_links:
+        description: 'Demo only: requested target (no real links collected)'
+        required: true
+        default: '1'
+      max_runtime_minutes:
+        description: 'Demo only: maximum runtime label'
+        required: true
+        default: '30'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/farm.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  safe-demo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Check Python syntax without executing the script
+        run: python -m py_compile jio_gemini_farm.py
+
+      - name: Generate safe demo outputs
+        shell: bash
+        run: |
+          mkdir -p outputs
+          : > outputs/fresh_links.txt
+          printf 'mode,status,links_found\nsafe_demo,no_accounts_accessed,0\n' > outputs/farm_results.csv
+          {
+            echo "SAFE DEMO — NO LIVE FARMING OR OTP ACCESS"
+            echo "Python syntax check: passed"
+            echo "Firebase SMS access: not attempted"
+            echo "Jio login or promotion claim: not attempted"
+            echo "Real links collected: 0"
+            echo "Run ID: ${GITHUB_RUN_ID}"
+          } > outputs/farm.log
+
+      - name: Upload demo results
+        uses: actions/upload-artifact@v4
+        with:
+          name: safe-demo-results-${{ github.run_id }}
+          path: outputs/
+          retention-days: 7
