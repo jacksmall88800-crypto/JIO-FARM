@@ -1,58 +1,50 @@
-name: Jio Farm - Safe Demo (No OTP)
+name: Jio Farm Execution
 
 on:
   workflow_dispatch:
     inputs:
       target_links:
-        description: 'Demo only: requested target (no real links collected)'
+        description: 'Target jumlah link'
         required: true
         default: '1'
       max_runtime_minutes:
-        description: 'Demo only: maximum runtime label'
+        description: 'Maks runtime (menit)'
         required: true
         default: '30'
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/farm.yml'
-
-permissions:
-  contents: read
+  schedule:
+    - cron: '0 */2 * * *'
 
 jobs:
-  safe-demo:
+  run-farm:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
+    timeout-minutes: 30
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
         with:
           python-version: '3.11'
 
-      - name: Check Python syntax without executing the script
-        run: python -m py_compile jio_gemini_farm.py
+      - name: Install Dependencies
+        run: pip install requests
 
-      - name: Generate safe demo outputs
-        shell: bash
+      - name: Execute Farm Script
+        run: python3 jio_gemini_farm.py --target ${{ github.event.inputs.target_links }} --sweep 60
+
+      - name: Check Results
+        id: check
         run: |
-          mkdir -p outputs
-          : > outputs/fresh_links.txt
-          printf 'mode,status,links_found\nsafe_demo,no_accounts_accessed,0\n' > outputs/farm_results.csv
-          {
-            echo "SAFE DEMO — NO LIVE FARMING OR OTP ACCESS"
-            echo "Python syntax check: passed"
-            echo "Firebase SMS access: not attempted"
-            echo "Jio login or promotion claim: not attempted"
-            echo "Real links collected: 0"
-            echo "Run ID: ${GITHUB_RUN_ID}"
-          } > outputs/farm.log
+          COUNT=$(wc -l < fresh_links.txt 2>/dev/null || echo 0)
+          echo "links_count=$COUNT" >> $GITHUB_OUTPUT
 
-      - name: Upload demo results
+      - name: Upload Outputs
         uses: actions/upload-artifact@v4
         with:
-          name: safe-demo-results-${{ github.run_id }}
-          path: outputs/
+          name: farm-results-${{ github.run_id }}
+          path: |
+            fresh_links.txt
+            farm_results.csv
+            farm.log
           retention-days: 7
